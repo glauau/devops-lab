@@ -1,0 +1,27 @@
+---
+- name: Install prereq docker
+  apt:
+    update_cache: yes
+    name: "{{ item }}"
+  loop: "{{ docker_prereqs_packages }}"
+
+- name: Add docker GPG apt Key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: Add docker Repository
+  apt_repository:
+    repo: deb https://download.docker.com/linux/ubuntu bionic stable
+    state: present
+
+- name: Install docker
+  apt:
+    name: "{{ item }}"
+  loop: "{{ docker_packages }}"
+
+- name: Start docker service
+  service:
+    name: docker
+    state: started
+    enabled: yes
