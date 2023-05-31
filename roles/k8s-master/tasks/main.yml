@@ -18,14 +18,28 @@
     dest: ./join
     src: /root/kubejoin.sh
 
-- name: Organize files
-  shell:
-    cp join/{{inventory_hostname}}/root/kubejoin.sh join/
-    rm -fr join/{{ inventory_hostname }}
-  delegate_to: localhost
-  become: no
+- name: Iniciar kubelet
+  systemd:
+    name: kubelet
+    state: started
 
-- name: Install pod network
-  command: kubectl apply -f https://docs.projectcalico.org/archive/v3.20/manifests/calico.yaml
+- name: Download Calico YAML
+  uri:
+    url: "https://github.com/projectcalico/calico/raw/master/manifests/calico.yaml"
+    dest: "/root/calico.yaml"
+
+- name: Apply Calico YAML
+  command: kubectl apply -f /root/calico.yaml
   environment:
     KUBECONFIG: /etc/kubernetes/admin.conf
+#- name: Organize files
+#  command:
+#    cp join/{{ inventory_hostname }}/root/kubejoin.sh ./join
+##    rm -rf join/{{ inventory_hostname }}
+#  delegate_to: localhost
+#  become: no
+
+#- name: Install pod network
+#  command: kubectl apply -f https://docs.projectcalico.org/archive/v3.20/manifests/calico.yaml
+#  environment:
+#    KUBECONFIG: /etc/kubernetes/admin.conf

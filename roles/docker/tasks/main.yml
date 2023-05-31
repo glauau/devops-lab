@@ -25,3 +25,18 @@
     name: docker
     state: started
     enabled: yes
+
+- name: Installing package containerd.io
+  apt:
+    name: containerd.io
+    state: present
+
+- name: Removing conf file containerd
+  file:
+    path: /etc/containerd/config.toml
+    state: absent
+
+- name: Restarting containerd service
+  systemd:
+    name: containerd
+    state: restarted
