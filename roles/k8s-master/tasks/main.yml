@@ -2,7 +2,7 @@
   command: kubeadm reset -f
 
 - name: Initialize k8s cluster
-  command: kubeadm init
+  command: kubeadm init --v=5
   register: kubeadm_init_output
 
 - name: Create file with output
@@ -18,10 +18,24 @@
     dest: ./join
     src: /root/kubejoin.sh
 
+- name: Organize files
+  command:
+    cp join/{{ inventory_hostname }}/root/kubejoin.sh ./join
+  delegate_to: localhost
+  become: no
+  tags: [organize-files]
+
+- name: Remove temporary directory
+  file:
+    path: "join/{{ inventory_hostname }}"
+    state: absent
+  delegate_to: localhost
+  become: no
+
 - name: Iniciar kubelet
   systemd:
     name: kubelet
-    state: started
+    state: restarted
 
 - name: Download Calico YAML
   uri:
@@ -32,14 +46,3 @@
   command: kubectl apply -f /root/calico.yaml
   environment:
     KUBECONFIG: /etc/kubernetes/admin.conf
-#- name: Organize files
-#  command:
-#    cp join/{{ inventory_hostname }}/root/kubejoin.sh ./join
-##    rm -rf join/{{ inventory_hostname }}
-#  delegate_to: localhost
-#  become: no
-
-#- name: Install pod network
-#  command: kubectl apply -f https://docs.projectcalico.org/archive/v3.20/manifests/calico.yaml
-#  environment:
-#    KUBECONFIG: /etc/kubernetes/admin.conf

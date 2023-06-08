@@ -1,9 +1,17 @@
 ---
+
+- name: Create join directory on workers
+  file:
+    path: /join
+    state: directory
+
 - name: Copy join to node
   copy:
-    dest: /opt/kubejoin.sh
     src: ./join/kubejoin.sh
+    dest: /opt/kubejoin.sh
     mode: '0700'
+  tags: [copy-join]
 
 - name: Run command on remote
   shell: /opt/kubejoin.sh
+
